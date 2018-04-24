@@ -1,7 +1,7 @@
 # Cubemap-splitter
 A Photoshop script which given a stereoscopc VR cubemap stripe gets its building images.
 
-A series of VR Cubemaps JPEG files is OPEN in Photoshop.
+A series of VR Cubemap JPEG files is OPEN in Photoshop.
 
 A Cubemap is a collection of six square textures that represent the reflections on an environment. The six squares form the faces of an imaginary cube that surrounds an object; each face represents the view along the directions of the world axes (up, down, left, right, forward and back).
 
