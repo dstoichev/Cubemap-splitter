@@ -1107,8 +1107,10 @@
         
         this.okTextlineFeed = "\n";        
         this.outputFileExtension = '.jpg';
+        this.outputFilesFlipDirections = [Direction.HORIZONTAL, Direction.HORIZONTAL, Direction.VERTICAL,
+                                          Direction.VERTICAL, Direction.HORIZONTAL, Direction.HORIZONTAL];
         this.outputFileName = 'pane';
-        this.outputFilesPostfixes = ['_r', '_l' , '_u', '_d', '_b', '_f'];
+        this.outputFilesPostfixes = ['_r', '_l', '_u', '_d', '_b', '_f'];
         this.outputResultsBasePath = '';
         this.outputResultsLeftEyePath = '';
         this.outputResultsRightEyePath = '';
@@ -1366,6 +1368,7 @@
             currentActive = app.documents.getByName(tempDocumentName); // TODO: do we need this
             currentActive.paste();    
             currentActive.flatten();
+            currentActive.flipCanvas(this.outputFilesFlipDirections[ squareNumber ]);
             
             if (this.checkCancelledByClient(true)) {
                 currentActive.close(SaveOptions.DONOTSAVECHANGES);
