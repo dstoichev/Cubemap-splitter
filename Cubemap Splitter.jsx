@@ -112,6 +112,9 @@
     isWindows = function() { return $.os.match(/windows/i); };
     isMac = function() { return !isWindows(); };
     
+    // this makes PS7 compatibility a bit easier
+    function getUnitValue(u) { return (u.value != undefined) ? u.value : u; }
+    
     //
     // Which app are we running in?
     //
@@ -1167,8 +1170,18 @@
             executeAction( idCpyM, undefined, DialogModes.NO );
         },
         
-        createResultFoders: function(resultFolderName) {
-            var resultBaseFolder = new Folder(this.opts.outputResultsDestinationPath + '/' + resultFolderName);
+        /**
+         * Prepare the folders for saving
+         * the Cubemap building squares images
+         *
+         * @param {Document} doc
+         */
+        createResultFoders: function(doc) {
+            var docNameArray = doc.name.split('.');
+            docNameArray.pop();
+            var resBaseFolderName = docNameArray.join('.');
+            
+            var resultBaseFolder = new Folder(this.opts.outputResultsDestinationPath + '/' + resBaseFolderName);
             if (! resultBaseFolder.exists) {
                 resultBaseFolder.create();
             }
@@ -1185,6 +1198,47 @@
                 resultRightEyeFolder.create();
             }
             this.outputResultsRightEyePath = resultRightEyeFolder.fsName;
+        },
+        
+        /**
+         * Save the Cubemap building squares to image files
+         *
+         * @param {Document} doc
+         * @returns {boolean}
+         */
+        getBuildingSquares: function(doc) {
+            var topLeftX = 0,
+                topLeftY = 0,
+                squareSide = getUnitValue(doc.height),
+                region, eye, squareNumber, currentTopLeftX;
+                
+            for (eye = 0; eye < 2; eye++)
+            {
+                for (squareNumber = 0; squareNumber < 6; squareNumber++)
+                {
+                    currentTopLeftX = topLeftX + 6 * eye * squareSide + squareNumber * squareSide;
+                    region = new Array(new Array( currentTopLeftX, topLeftY ),
+                                       new Array( currentTopLeftX + squareSide, topLeftY ),
+                                       new Array( currentTopLeftX + squareSide, topLeftY + squareSide ),
+                                       new Array( currentTopLeftX, topLeftY + squareSide ));
+                    
+                    doc.selection.select(region, SelectionType.REPLACE);
+                    if (1 < doc.layers.length) {
+                        this.copyMerged();
+                    }
+                    else {
+                        doc.selection.copy();
+                    }
+                    
+                    this.checkCancelledByClient();
+                    
+                    if (! this.saveSquare(doc, eye, squareNumber, squareSide)) {
+                        return false;
+                    }
+                }
+            }
+            
+            return true;
         },
         
         init: function() {
@@ -1272,22 +1326,70 @@
             app.activeDocument = doc;
             
             // Recognize Cubemap: 12*height == width
-            if (doc.width != 12 * doc.height) {
+            if (getUnitValue(doc.width) != 12 * getUnitValue(doc.height)) {
                 this.alertText = ''.concat(this.alertText, doc.name, ' is not a Cubemap. Skipping...', this.okTextlineFeed);
                 return;
             }
-            
-            var docNameArray = doc.name.split('.');
-            docNameArray.pop();
-            var resBaseFolderName = docNameArray.join('.');;
-            this.createResultFoders(resBaseFolderName);
+                        
+            this.createResultFoders(doc);
             
             try {
                 // Clean up selection, if any
                 doc.selection.deselect();
             } catch (e) {}
             
-            this.alertText = ''.concat(this.alertText, doc.name, ' - OK.', this.okTextlineFeed);
+            if (this.getBuildingSquares(doc)) {
+                this.alertText = ''.concat(this.alertText, doc.name, ' - OK.', this.okTextlineFeed);
+            }
+        },
+        
+        /**
+         * Save the contents of the clipboard to an image file
+         *
+         * @param {Document} doc
+         * @param {Number} eye
+         * @param {Number} squareNumber
+         * @param {Number} squareSide
+         * @returns {boolean}
+         */
+        saveSquare: function(doc, eye, squareNumber, squareSide) {
+            var result = true,
+                resultSubfoldersPaths = [this.outputResultsLeftEyePath, this.outputResultsRightEyePath],
+                saveName = this.outputFileName + this.outputFilesPostfixes[ squareNumber ],
+                now = new Date(),
+                tempDocumentName = ''.concat('Temp-', saveName, '-', now.valueOf()),
+                file = new File(resultSubfoldersPaths[ eye ] + '/' + saveName + this.outputFileExtension),
+                currentActive;
+                
+            // Add temporary document
+            app.documents.add(squareSide, squareSide, 72, tempDocumentName, NewDocumentMode.RGB);
+            currentActive = app.documents.getByName(tempDocumentName); // TODO: do we need this
+            currentActive.paste();    
+            currentActive.flatten();
+            
+            if (this.checkCancelledByClient(true)) {
+                currentActive.close(SaveOptions.DONOTSAVECHANGES);
+                app.activeDocument = doc;
+                throw new Error(this.cancelledByClientMessage);
+            }
+            
+            try {
+                currentActive.saveAs(file, this.saveOptions, true, Extension.LOWERCASE);
+            } catch (e) {
+                var warnText = 'Failed to save output image',
+                    msg = ''.concat('File save error: ', e.message, "\n", warnText, ': ', file.toUIString(), "\n");
+                
+                this.addWarningToAlertText(doc.name, warnText + '.');
+                Stdlib.logException(e, msg, false);
+                result = false;
+            }
+            
+            // Close the temporary document
+            currentActive.close(SaveOptions.DONOTSAVECHANGES);
+            
+            app.activeDocument = doc; // must be the correct active document before attempting revert on Mac
+            
+            return result;
         }
     };
     
