@@ -1252,12 +1252,19 @@
             var cropLayerRef;
                 
             app.activeDocument = doc;
-                
+            
+            // Recognize Cubemap: 12*height == width
+            if (doc.width != 12 * doc.height) {
+                this.alertText = ''.concat(this.alertText, doc.name, ' is not a Cubemap. Skipping...', this.okTextlineFeed);
+                return;
+            }
+            
             try {
                 // Clean up selection, if any
                 doc.selection.deselect();
             } catch (e) {}
             
+            this.alertText = ''.concat(this.alertText, doc.name, ' - OK.', this.okTextlineFeed);
         }
     };
     
