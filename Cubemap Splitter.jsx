@@ -1097,17 +1097,24 @@
         this.cancelledByClientMessage = 'CancelledByClient';
             
         this.opts = {
-            outputResultsDestinationPath: Folder.myDocuments.fsName,
-            outputImageType: 'JPEG'
+            outputResultsDestinationPath: Folder.myDocuments.fsName
         };
         
         this.okTextlineFeed = "\n";
         
-        this.outputFileExtension = '';
+        this.outputFileExtension = '.jpg';
+        
+        this.leftEyeResultFolderName = 'left';
+        this.rightEyeResultFolderName = 'right';
+        
+        this.outputResultsBasePath = '';
+        this.outputResultsLeftEyePath = '';
+        this.outputResultsRightEyePath = '';
         
         this.progressUi = null;
         
-        this.saveOptions = null;
+        this.saveOptions = new JPEGSaveOptions();
+        this.saveOptions.quality = 12;                
         
         this.ui = null;
     }
@@ -1159,6 +1166,26 @@
             executeAction( idCpyM, undefined, DialogModes.NO );
         },
         
+        createResultFoders: function(resultFolderName) {
+            var resultBaseFolder = new Folder(this.opts.outputResultsDestinationPath + '/' + resultFolderName);
+            if (! resultBaseFolder.exists) {
+                resultBaseFolder.create();
+            }
+            this.outputResultsBasePath = resultBaseFolder.fsName;
+            
+            var resultLeftEyeFolder = new Folder(this.outputResultsBasePath + '/' + this.leftEyeResultFolderName);
+            if (! resultLeftEyeFolder.exists) {
+                resultLeftEyeFolder.create();
+            }
+            this.outputResultsLeftEyePath = resultLeftEyeFolder.fsName;
+            
+            var resultRightEyeFolder = new Folder(this.outputResultsBasePath + '/' + this.rightEyeResultFolderName);
+            if (! resultRightEyeFolder.exists) {
+                resultRightEyeFolder.create();
+            }
+            this.outputResultsRightEyePath = resultRightEyeFolder.fsName;
+        },
+        
         init: function() {
             var originalRulerUnits = app.preferences.rulerUnits;
             app.preferences.rulerUnits = Units.PIXELS;
@@ -1178,18 +1205,8 @@
             
             app.preferences.rulerUnits = originalRulerUnits;            
         },
-        
-        initPreferences: function() {
-            if ('JPEG' === this.opts.outputImageType) {
-                this.saveOptions = new JPEGSaveOptions();
-                this.saveOptions.quality = 12;
-                this.outputFileExtension = '.jpg';
-            }
-        },
-        
+                
         main: function() {
-            this.initPreferences();
-            
             var docs = app.documents,
                 docsCount = docs.length,
                 currentActive = app.activeDocument,                
@@ -1258,6 +1275,11 @@
                 this.alertText = ''.concat(this.alertText, doc.name, ' is not a Cubemap. Skipping...', this.okTextlineFeed);
                 return;
             }
+            
+            var docNameArray = doc.name.split('.');
+            docNameArray.pop();
+            var resBaseFolderName = docNameArray.join('.');;
+            this.createResultFoders(resBaseFolderName);
             
             try {
                 // Clean up selection, if any
