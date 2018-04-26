@@ -1097,13 +1097,12 @@
         this.cancelledByClientMessage = 'CancelledByClient';
             
         this.opts = {
-            outputResultsDestinationPath: Folder.myDocuments.fsName,
-            outputImageType: 'JPEG'
+            outputResultsDestinationPath: Folder.myDocuments.fsName
         };
         
         this.okTextlineFeed = "\n";
         
-        this.outputFileExtension = '';
+        this.outputFileExtension = '.jpg';
         
         this.leftEyeResultFolderName = 'left';
         this.rightEyeResultFolderName = 'right';
@@ -1114,7 +1113,8 @@
         
         this.progressUi = null;
         
-        this.saveOptions = null;
+        this.saveOptions = new JPEGSaveOptions();
+        this.saveOptions.quality = 12;                
         
         this.ui = null;
     }
@@ -1205,18 +1205,8 @@
             
             app.preferences.rulerUnits = originalRulerUnits;            
         },
-        
-        initPreferences: function() {
-            if ('JPEG' === this.opts.outputImageType) {
-                this.saveOptions = new JPEGSaveOptions();
-                this.saveOptions.quality = 12;
-                this.outputFileExtension = '.jpg';
-            }
-        },
-        
+                
         main: function() {
-            this.initPreferences();
-            
             var docs = app.documents,
                 docsCount = docs.length,
                 currentActive = app.activeDocument,                
