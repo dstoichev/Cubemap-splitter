@@ -1105,6 +1105,13 @@
         
         this.outputFileExtension = '';
         
+        this.leftEyeResultFolderName = 'left';
+        this.rightEyeResultFolderName = 'right';
+        
+        this.outputResultsBasePath = '';
+        this.outputResultsLeftEyePath = '';
+        this.outputResultsRightEyePath = '';
+        
         this.progressUi = null;
         
         this.saveOptions = null;
@@ -1157,6 +1164,26 @@
         copyMerged: function() {    
             var idCpyM = charIDToTypeID( "CpyM" );
             executeAction( idCpyM, undefined, DialogModes.NO );
+        },
+        
+        createResultFoders: function(resultFolderName) {
+            var resultBaseFolder = new Folder(this.opts.outputResultsDestinationPath + '/' + resultFolderName);
+            if (! resultBaseFolder.exists) {
+                resultBaseFolder.create();
+            }
+            this.outputResultsBasePath = resultBaseFolder.fsName;
+            
+            var resultLeftEyeFolder = new Folder(this.outputResultsBasePath + '/' + this.leftEyeResultFolderName);
+            if (! resultLeftEyeFolder.exists) {
+                resultLeftEyeFolder.create();
+            }
+            this.outputResultsLeftEyePath = resultLeftEyeFolder.fsName;
+            
+            var resultRightEyeFolder = new Folder(this.outputResultsBasePath + '/' + this.rightEyeResultFolderName);
+            if (! resultRightEyeFolder.exists) {
+                resultRightEyeFolder.create();
+            }
+            this.outputResultsRightEyePath = resultRightEyeFolder.fsName;
         },
         
         init: function() {
@@ -1258,6 +1285,11 @@
                 this.alertText = ''.concat(this.alertText, doc.name, ' is not a Cubemap. Skipping...', this.okTextlineFeed);
                 return;
             }
+            
+            var docNameArray = doc.name.split('.');
+            docNameArray.pop();
+            var resBaseFolderName = docNameArray.join('.');;
+            this.createResultFoders(resBaseFolderName);
             
             try {
                 // Clean up selection, if any
