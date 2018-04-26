@@ -1095,23 +1095,24 @@
         this.alertTextHasWarnings = false;
         
         this.cancelledByClientMessage = 'CancelledByClient';
+        
+        this.leftEyeResultFolderName = 'left';
             
         this.opts = {
             outputResultsDestinationPath: Folder.myDocuments.fsName
         };
         
-        this.okTextlineFeed = "\n";
-        
+        this.okTextlineFeed = "\n";        
         this.outputFileExtension = '.jpg';
-        
-        this.leftEyeResultFolderName = 'left';
-        this.rightEyeResultFolderName = 'right';
-        
+        this.outputFileName = 'pane';
+        this.outputFilesPostfixes = ['_r', '_l' , '_u', '_d', '_b', '_f'];
         this.outputResultsBasePath = '';
         this.outputResultsLeftEyePath = '';
         this.outputResultsRightEyePath = '';
         
         this.progressUi = null;
+        
+        this.rightEyeResultFolderName = 'right';
         
         this.saveOptions = new JPEGSaveOptions();
         this.saveOptions.quality = 12;                
