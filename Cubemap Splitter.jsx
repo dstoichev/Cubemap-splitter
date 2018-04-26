@@ -1010,8 +1010,7 @@
         this.bounds = "x: 200, y: 200, width: 650, height: 420";
         
         this.docNote = ''.concat("\n", 'Processes all documents currently OPEN in Photoshop.', "\n\n",
-                                 'Saves the building images of a stereoscopc VR cubemap strip. Flips horizontally or vertically squares which need it.',
-                                 "\n", 'Saves into separate folders for the right and the left eye.');
+                                 'Saves the building images of a stereoscopc VR cubemap strip into separate folders for the right and the left eye.');
         
         this.opts = opts;
         
@@ -1253,12 +1252,19 @@
             var cropLayerRef;
                 
             app.activeDocument = doc;
-                
+            
+            // Recognize Cubemap: 12*height == width
+            if (doc.width != 12 * doc.height) {
+                this.alertText = ''.concat(this.alertText, doc.name, ' is not a Cubemap. Skipping...', this.okTextlineFeed);
+                return;
+            }
+            
             try {
                 // Clean up selection, if any
                 doc.selection.deselect();
             } catch (e) {}
             
+            this.alertText = ''.concat(this.alertText, doc.name, ' - OK.', this.okTextlineFeed);
         }
     };
     
