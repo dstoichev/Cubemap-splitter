@@ -1013,7 +1013,7 @@
         this.bounds = "x: 200, y: 200, width: 650, height: 420";
         
         this.docNote = ''.concat("\n", 'Processes all documents currently OPEN in Photoshop.', "\n\n",
-                                 'Saves the building images of a stereoscopc VR cubemap strip into separate folders for the right and the left eye.');
+                                 'Saves the building images of a stereoscopic or monoscopic VR cubemap strip into separate folders for the left and the right eye.');
         
         this.opts = opts;
         
@@ -1177,8 +1177,9 @@
          * the Cubemap building squares images
          *
          * @param {Document} doc
+         * @param {int} numEyes
          */
-        createResultFoders: function(doc) {
+        createResultFoders: function(doc, numEyes) {
             var docNameArray = doc.name.split('.');
             docNameArray.pop();
             var resBaseFolderName = docNameArray.join('.');
@@ -1195,6 +1196,10 @@
             }
             this.outputResultsLeftEyePath = resultLeftEyeFolder.fsName;
             
+            if (2 > numEyes) {
+                return;
+            }
+            
             var resultRightEyeFolder = new Folder(this.outputResultsBasePath + '/' + this.rightEyeResultFolderName);
             if (! resultRightEyeFolder.exists) {
                 resultRightEyeFolder.create();
@@ -1206,15 +1211,16 @@
          * Save the Cubemap building squares to image files
          *
          * @param {Document} doc
+         * @param {int} numEyes
          * @returns {boolean}
          */
-        getBuildingSquares: function(doc) {
+        getBuildingSquares: function(doc, numEyes) {
             var topLeftX = 0,
                 topLeftY = 0,
                 squareSide = getUnitValue(doc.height),
                 region, eye, squareNumber, currentTopLeftX;
                 
-            for (eye = 0; eye < 2; eye++)
+            for (eye = 0; eye < numEyes; eye++)
             {
                 for (squareNumber = 0; squareNumber < 6; squareNumber++)
                 {
@@ -1323,24 +1329,37 @@
         },
         
         processDocument: function(doc) {
-            var cropLayerRef;
+            var cropLayerRef,
+                currentWidth = getUnitValue(doc.width),
+                currentHeight = getUnitValue(doc.height),
+                isStereoskopic = currentWidth == 12 * currentHeight,
+                isMonoscopic = currentWidth == 6 * currentHeight,
+                numEyes;
                 
             app.activeDocument = doc;
             
-            // Recognize Cubemap: 12*height == width
-            if (getUnitValue(doc.width) != 12 * getUnitValue(doc.height)) {
+            // Recognize Cubemap: 12*height == width or 6*height == width
+            if (! isStereoskopic && ! isMonoscopic) {
                 this.alertText = ''.concat(this.alertText, doc.name, ' is not a Cubemap. Skipping...', this.okTextlineFeed);
                 return;
             }
-                        
-            this.createResultFoders(doc);
+            
+            if (isStereoskopic) {
+                numEyes = 2;
+            }
+            else {
+                // Monoscopic
+                numEyes = 1;
+            }
+            
+            this.createResultFoders(doc, numEyes);
             
             try {
                 // Clean up selection, if any
                 doc.selection.deselect();
             } catch (e) {}
             
-            if (this.getBuildingSquares(doc)) {
+            if (this.getBuildingSquares(doc, numEyes)) {
                 this.alertText = ''.concat(this.alertText, doc.name, ' - OK.', this.okTextlineFeed);
             }
         },
