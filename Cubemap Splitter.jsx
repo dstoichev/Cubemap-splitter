@@ -1109,7 +1109,7 @@
         this.outputFileExtension = '.jpg';
         this.outputFilesFlipDirections = [Direction.HORIZONTAL, Direction.HORIZONTAL, Direction.VERTICAL,
                                           Direction.VERTICAL, Direction.HORIZONTAL, Direction.HORIZONTAL];
-        this.outputFileName = 'pane';
+        this.outputFileName = 'pano';
         this.outputFilesPostfixes = ['_r', '_l', '_u', '_d', '_b', '_f'];
         this.outputResultsBasePath = '';
         this.outputResultsLeftEyePath = '';
