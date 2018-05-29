@@ -1049,7 +1049,7 @@
             "dialog { orientation:'column', \
                 text: '"+this.title+"', frameLocation:[100, 100],  \
                 notePnl: Panel { orientation:'column', alignment: 'fill', maximumSize: [700, "+maxNotePanelHeight+"], margins: [15, 0, 10, 15], \
-                    text: 'Note', \
+                    text: 'Cubemap Splitter version "+ this.opts.version +"', \
                     st: StaticText { text: '', alignment: 'fill', \
                                      properties: {multiline: true} \
                     }, \
@@ -1102,7 +1102,8 @@
         this.leftEyeResultFolderName = 'left';
             
         this.opts = {
-            outputResultsDestinationPath: Folder.myDocuments.fsName
+            outputResultsDestinationPath: Folder.myDocuments.fsName,
+            version: '2.1'
         };
         
         this.okTextlineFeed = "\n";        
